@@ -343,7 +343,7 @@ td{padding:.75rem 1rem;font-size:.83rem;vertical-align:middle}
   <div class="main-area">
     <div class="topbar">
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
-      <a class="store-link" href="index.html" target="_blank">🛒 Ver Loja</a>
+      <a class="store-link" href="loja.html" target="_blank">🛒 Ver Loja</a>
     </div>
 
     <!-- ── DASHBOARD ── -->
@@ -573,28 +573,70 @@ const applyTheme = t => { document.documentElement.dataset.theme=t; $('themeBtn'
 applyTheme(localStorage.getItem('theme')||'dark');
 window.toggleTheme = () => { const t=document.documentElement.dataset.theme==='dark'?'light':'dark'; applyTheme(t); localStorage.setItem('theme',t); };
 
-// ── firebase init ──
+// ── firebase init — sem condição de corrida ──
 let auth, db, fbM, fbAuth;
-window.addEventListener('fb-ready', () => {
-  auth=window.__auth; db=window.__db; fbM=window.__fbM; fbAuth=window.__fbAuth;
+
+function initFirebase() {
+  auth   = window.__auth;
+  db     = window.__db;
+  fbM    = window.__fbM;
+  fbAuth = window.__fbAuth;
+
   fbAuth.onAuthStateChanged(auth, user => {
-    if(user){ showApp(user); }
-    else { $('loginScreen').style.display='flex'; $('appShell').classList.remove('on'); }
+    if (user) {
+      showApp(user);
+    } else {
+      $('loginScreen').style.display = 'flex';
+      $('appShell').classList.remove('on');
+    }
   });
-});
+
+  // live listener pedidos
+  fbM.onSnapshot(
+    fbM.query(fbM.collection(db,'orders'), fbM.orderBy('createdAt','desc')),
+    snap => {
+      allOrders = snap.docs.map(d => ({id:d.id,...d.data()}));
+      updateStats(); renderOrdersTable(ordersFilter); renderRecent(); updatePendBadge();
+    }
+  );
+}
+
+// Se Firebase já carregou antes deste script rodar
+if (window.__auth) {
+  initFirebase();
+} else {
+  window.addEventListener('fb-ready', initFirebase);
+}
 
 // ── login ──
 window.doLogin = async () => {
-  const email=$('l_email').value.trim(), pass=$('l_pass').value;
-  if(!email||!pass){ $('lErr').textContent='Preencha e-mail e senha.'; return; }
-  const btn=$('loginBtn'); btn.disabled=true; btn.textContent='Entrando…';
+  const email = $('l_email').value.trim();
+  const pass  = $('l_pass').value;
+  if (!email || !pass) { $('lErr').textContent = 'Preencha e-mail e senha.'; return; }
+  const btn = $('loginBtn');
+  btn.disabled = true; btn.textContent = 'Entrando…';
   try {
     await fbAuth.signInWithEmailAndPassword(auth, email, pass);
-    $('lErr').textContent='';
+    $('lErr').textContent = '';
   } catch(e) {
-    $('lErr').textContent='E-mail ou senha incorretos.';
+    const erros = {
+      'auth/user-not-found':       '❌ E-mail não encontrado.',
+      'auth/wrong-password':       '❌ Senha incorreta.',
+      'auth/invalid-email':        '❌ E-mail inválido.',
+      'auth/invalid-credential':   '❌ E-mail ou senha incorretos.',
+      'auth/too-many-requests':    '⚠️ Muitas tentativas. Aguarde alguns minutos.',
+      'auth/network-request-failed':'⚠️ Sem conexão. Verifique sua internet.',
+      'auth/unauthorized-domain':  '⚠️ Domínio não autorizado no Firebase. Veja instruções abaixo.',
+    };
+    $('lErr').textContent = erros[e.code] || `❌ Erro: ${e.code}`;
+    console.error('Firebase Auth error:', e.code, e.message);
+
+    // Mostra instrução extra se for domínio não autorizado
+    if (e.code === 'auth/unauthorized-domain') {
+      $('lErr').innerHTML = '⚠️ Domínio bloqueado pelo Firebase.<br><small>Adicione <b>painel-adm-peach.vercel.app</b> em:<br>Firebase → Authentication → Settings → Authorized domains</small>';
+    }
   }
-  btn.disabled=false; btn.textContent='Entrar';
+  btn.disabled = false; btn.textContent = 'Entrar';
 };
 window.doLogout = async () => { await fbAuth.signOut(auth); };
 
@@ -621,25 +663,20 @@ let allOrders=[], allProds=[], ordersFilter='all', currentOrderId=null;
 
 // ── load all ──
 async function loadAll(){
-  const [os, ps] = await Promise.all([
-    fbM.getDocs(fbM.query(fbM.collection(db,'orders'), fbM.orderBy('createdAt','desc'))),
-    fbM.getDocs(fbM.query(fbM.collection(db,'products'), fbM.orderBy('createdAt','desc')))
-  ]);
-  allOrders = os.docs.map(d=>({id:d.id,...d.data()}));
-  allProds  = ps.docs.map(d=>({id:d.id,...d.data()}));
-  updateStats(); renderOrdersTable('all'); renderProdGrid(); renderRecent();
-  updatePendBadge();
+  try {
+    const [os, ps] = await Promise.all([
+      fbM.getDocs(fbM.query(fbM.collection(db,'orders'), fbM.orderBy('createdAt','desc'))),
+      fbM.getDocs(fbM.query(fbM.collection(db,'products'), fbM.orderBy('createdAt','desc')))
+    ]);
+    allOrders = os.docs.map(d=>({id:d.id,...d.data()}));
+    allProds  = ps.docs.map(d=>({id:d.id,...d.data()}));
+    updateStats(); renderOrdersTable('all'); renderProdGrid(); renderRecent();
+    updatePendBadge();
+  } catch(e) {
+    console.error('Erro ao carregar dados:', e);
+    toast('Erro ao carregar dados. Verifique as regras do Firestore.','err');
+  }
 }
-// live listener for new orders
-window.addEventListener('fb-ready', () => {
-  setTimeout(() => {
-    if(!db||!fbM) return;
-    fbM.onSnapshot(fbM.query(fbM.collection(db,'orders'), fbM.orderBy('createdAt','desc')), snap => {
-      allOrders = snap.docs.map(d=>({id:d.id,...d.data()}));
-      updateStats(); renderOrdersTable(ordersFilter); renderRecent(); updatePendBadge();
-    });
-  }, 500);
-});
 
 function updatePendBadge(){
   const n=allOrders.filter(o=>o.status==='pendente_pagamento').length;
