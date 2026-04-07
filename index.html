@@ -404,7 +404,7 @@ td{padding:.75rem 1rem;font-size:.83rem;vertical-align:middle}
 
       <div class="add-product-box">
         <div class="ap-title">➕ Adicionar Produto</div>
-        <div class="ai-tip"><b>🤖 Assistente IA:</b> Digite o nome do produto e clique <b>"Gerar com IA"</b> — o título, descrição e preço são preenchidos automaticamente. Você pode editar antes de salvar.</div>
+        <div class="ai-tip"><b>🤖 Assistente IA:</b> Digite o nome do produto e clique <b>"Gerar com IA"</b> — título, descrição e preço são preenchidos automaticamente.</div>
 
         <div class="form-grid full" style="margin-bottom:.85rem">
           <div class="f-group">
@@ -426,23 +426,26 @@ td{padding:.75rem 1rem;font-size:.83rem;vertical-align:middle}
             <input class="f-input" id="pf_emo" placeholder="📦">
           </div>
         </div>
+
         <div class="form-grid full" style="margin-bottom:.85rem">
           <div class="f-group">
             <label class="f-label">Descrição</label>
             <textarea class="f-textarea" id="pf_desc" placeholder="Gerado automaticamente…"></textarea>
           </div>
         </div>
+
         <div class="form-grid" style="margin-bottom:.85rem">
           <div class="f-group">
-            <label class="f-label">Preço (R$)</label>
+            <label class="f-label">Preço exibido (R$)</label>
             <input class="f-input" id="pf_price" type="number" placeholder="0.00" step="0.01">
           </div>
           <div class="f-group">
-            <label class="f-label">Preço Original (opcional)</label>
+            <label class="f-label">Preço Original / De (opcional)</label>
             <input class="f-input" id="pf_old" type="number" placeholder="0.00" step="0.01">
           </div>
         </div>
-        <div class="form-grid">
+
+        <div class="form-grid" style="margin-bottom:.85rem">
           <div class="f-group">
             <label class="f-label">Categoria</label>
             <select class="f-select" id="pf_cat">
@@ -463,6 +466,65 @@ td{padding:.75rem 1rem;font-size:.83rem;vertical-align:middle}
             </select>
           </div>
         </div>
+
+        <!-- TIPO DO PRODUTO -->
+        <div class="form-grid full" style="margin-bottom:.85rem">
+          <div class="f-group">
+            <label class="f-label">Tipo do Produto</label>
+            <div style="display:flex;gap:.65rem">
+              <label style="flex:1;display:flex;align-items:center;gap:.6rem;background:var(--inp);
+                border:2px solid var(--border);border-radius:8px;padding:.7rem .9rem;cursor:pointer;
+                transition:all .2s" id="lbl_aff">
+                <input type="radio" name="pf_type" id="pf_type_aff" value="afiliado"
+                  onchange="toggleProdType()" checked
+                  style="accent-color:var(--gold);width:16px;height:16px">
+                <span>
+                  <b style="display:block;font-size:.85rem">🔗 Afiliado ML</b>
+                  <span style="font-size:.72rem;color:var(--muted)">Cliente compra no Mercado Livre</span>
+                </span>
+              </label>
+              <label style="flex:1;display:flex;align-items:center;gap:.6rem;background:var(--inp);
+                border:2px solid var(--border);border-radius:8px;padding:.7rem .9rem;cursor:pointer;
+                transition:all .2s" id="lbl_drop">
+                <input type="radio" name="pf_type" id="pf_type_drop" value="dropshipping"
+                  onchange="toggleProdType()"
+                  style="accent-color:var(--a2);width:16px;height:16px">
+                <span>
+                  <b style="display:block;font-size:.85rem">🛒 Dropshipping</b>
+                  <span style="font-size:.72rem;color:var(--muted)">Cliente paga na sua loja</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- LINK AFILIADO ML (só aparece se tipo = afiliado) -->
+        <div id="field_afflink" class="form-grid full" style="margin-bottom:.85rem">
+          <div class="f-group">
+            <label class="f-label">🔗 Link de Afiliado — Mercado Livre</label>
+            <input class="f-input" id="pf_afflink"
+              placeholder="https://mercadolivre.com.br/... (com seu código de afiliado)"
+              style="border-color:color-mix(in srgb,#ffe600 40%,var(--border))">
+            <span style="font-size:.72rem;color:var(--muted);margin-top:.3rem;display:block">
+              No Painel de Afiliados do ML → pesquise o produto → <b>"Gerar link"</b> → cole aqui.
+            </span>
+          </div>
+        </div>
+
+        <!-- LINK MERCADO PAGO (só aparece se tipo = dropshipping) -->
+        <div id="field_mplink" class="form-grid full" style="margin-bottom:.85rem;display:none">
+          <div class="f-group">
+            <label class="f-label">💙 Link de Pagamento — Mercado Pago</label>
+            <input class="f-input" id="pf_mplink"
+              placeholder="https://mpago.la/xxxxx"
+              style="border-color:color-mix(in srgb,#009ee3 40%,var(--border))">
+            <span style="font-size:.72rem;color:var(--muted);margin-top:.3rem;display:block">
+              App Mercado Pago → <b>Cobrar</b> → <b>Criar cobrança</b> → <b>Link de pagamento</b> → coloque o preço do produto → copie e cole aqui.
+              O cliente será redirecionado para esse link ao finalizar o pedido.
+            </span>
+          </div>
+        </div>
+
         <div style="display:flex;justify-content:flex-end;margin-top:1.1rem">
           <button class="save-prod-btn" onclick="saveProd()">✅ Publicar na Loja</button>
         </div>
@@ -491,14 +553,31 @@ td{padding:.75rem 1rem;font-size:.83rem;vertical-align:middle}
         <button class="save-prod-btn" onclick="saveConfig()">💾 Salvar Configurações</button>
       </div>
       <div class="add-product-box">
-        <div class="ap-title">💙 Mercado Pago</div>
-        <div style="font-size:.83rem;color:var(--muted);line-height:1.6">
-          Para receber pagamentos via Mercado Pago:<br>
-          1. Acesse <b>mercadopago.com.br/developers</b><br>
-          2. Crie uma aplicação<br>
-          3. Copie o <b>Access Token de produção</b><br>
-          4. Configure no seu backend (ex: Vercel, Railway, etc.) para gerar <b>preferências de pagamento</b><br><br>
-          <b style="color:var(--a3)">O dinheiro vai direto para a sua conta Mercado Pago.</b>
+        <div class="ap-title">🔗 Mercado Livre — Programa de Afiliados</div>
+        <div style="font-size:.83rem;color:var(--text2);line-height:1.9">
+
+          <div style="background:color-mix(in srgb,#ffe600 8%,var(--card));border:1px solid color-mix(in srgb,#ffe600 30%,var(--border));border-radius:10px;padding:1rem;margin-bottom:1.1rem">
+            <b style="color:var(--text)">✅ Como funciona:</b> O cliente clica no produto da sua loja →
+            vai direto pro Mercado Livre → compra lá → você recebe <b>comissão de 4% a 12%</b> automaticamente.
+            Você não precisa processar nenhum pagamento.
+          </div>
+
+          <b style="color:var(--text)">Como se cadastrar no programa de afiliados:</b><br><br>
+          1. Acesse <b>mercadolivre.com.br/afiliados</b><br>
+          2. Clique em <b>"Quero ser afiliado"</b> e complete o cadastro<br>
+          3. Aguarde aprovação (normalmente 1-2 dias úteis)<br><br>
+
+          <b style="color:var(--text)">Como pegar o link de afiliado de um produto:</b><br><br>
+          1. Após aprovado, acesse o <b>Painel de Afiliados</b><br>
+          2. Pesquise o produto que você quer divulgar<br>
+          3. Clique em <b>"Gerar link"</b><br>
+          4. Copie o link gerado (ele contém seu código de afiliado)<br>
+          5. Cole no campo <b>"Link de Afiliado"</b> ao adicionar o produto no painel<br><br>
+
+          <span style="color:var(--muted);font-size:.78rem">
+            💡 Dica: Escolha produtos com <b>Frete Grátis</b> e <b>Full</b> (entrega rápida) —
+            eles convertem muito melhor. Categorias com maior comissão: Tecnologia, Casa, Beleza.
+          </span>
         </div>
       </div>
     </div>
@@ -800,44 +879,78 @@ window.saveOrder = async () => {
   } catch(e) { toast('Erro ao salvar.','err'); }
 };
 
+// ── toggle form fields based on product type ──
+window.toggleProdType = () => {
+  const isAff = document.getElementById('pf_type_aff').checked;
+  document.getElementById('field_afflink').style.display = isAff  ? 'block' : 'none';
+  document.getElementById('field_mplink').style.display  = !isAff ? 'block' : 'none';
+  document.getElementById('lbl_aff').style.borderColor   = isAff  ? 'var(--gold)' : 'var(--border)';
+  document.getElementById('lbl_drop').style.borderColor  = !isAff ? 'var(--a2)'   : 'var(--border)';
+};
+// run once on load to set initial state
+setTimeout(() => window.toggleProdType(), 100);
+
 // ── products ──
 async function saveProd(){
-  const name=$('pf_name').value.trim(), desc=$('pf_desc').value.trim();
-  const price=parseFloat($('pf_price').value), old=parseFloat($('pf_old').value)||null;
-  const cat=$('pf_cat').value, emoji=$('pf_emo').value.trim()||'📦';
-  const badge=$('pf_badge').value||null;
-  if(!name||!desc||!price){ toast('Preencha nome, descrição e preço.','err'); return; }
+  const name    = $('pf_name').value.trim();
+  const desc    = $('pf_desc').value.trim();
+  const price   = parseFloat($('pf_price').value);
+  const old     = parseFloat($('pf_old').value) || null;
+  const cat     = $('pf_cat').value;
+  const emoji   = $('pf_emo').value.trim() || '📦';
+  const badge   = $('pf_badge').value || null;
+  const type    = document.querySelector('input[name="pf_type"]:checked')?.value || 'afiliado';
+  const affLink = $('pf_afflink').value.trim() || null;
+  const mpLink  = $('pf_mplink').value.trim()  || null;
+
+  if (!name || !desc || !price) { toast('Preencha nome, descrição e preço.','err'); return; }
+  if (type === 'afiliado'    && !affLink) { toast('⚠️ Adicione o link de afiliado do Mercado Livre!','err'); return; }
+  if (type === 'dropshipping' && !mpLink) { toast('⚠️ Adicione o link de pagamento do Mercado Pago!','err'); return; }
+
   try {
-    const ref=await fbM.addDoc(fbM.collection(db,'products'),{
-      name, desc, price, oldPrice:old, cat, emoji, badge,
-      createdAt: fbM.serverTimestamp()
-    });
-    allProds.unshift({id:ref.id,name,desc,price,oldPrice:old,cat,emoji,badge});
+    const data = { name, desc, price, oldPrice:old, cat, emoji, badge, type,
+                   affLink: type==='afiliado' ? affLink : null,
+                   mpLink:  type==='dropshipping' ? mpLink : null,
+                   createdAt: fbM.serverTimestamp() };
+    const ref = await fbM.addDoc(fbM.collection(db,'products'), data);
+    allProds.unshift({ id:ref.id, ...data });
     renderProdGrid(); updateStats();
-    toast(`✅ "${name}" publicado!`);
-    ['pf_kw','pf_name','pf_desc','pf_price','pf_old','pf_emo'].forEach(id=>$(id).value='');
+    toast(`✅ "${name}" publicado na loja!`);
+    ['pf_kw','pf_name','pf_desc','pf_price','pf_old','pf_emo','pf_afflink','pf_mplink'].forEach(id=>$(id).value='');
     $('pf_badge').value='';
-  } catch(e) { toast('Erro ao salvar produto.','err'); }
+    document.getElementById('pf_type_aff').checked = true;
+    window.toggleProdType();
+  } catch(e) { toast('Erro ao salvar produto.','err'); console.error(e); }
 }
 window.saveProd = saveProd;
 
 window.deleteProd = async id => {
-  if(!confirm('Remover produto?')) return;
+  if (!confirm('Remover produto?')) return;
   try {
     await fbM.deleteDoc(fbM.doc(db,'products',id));
-    allProds=allProds.filter(p=>p.id!==id);
+    allProds = allProds.filter(p=>p.id!==id);
     renderProdGrid(); updateStats(); toast('🗑 Produto removido.');
   } catch(e) { toast('Erro.','err'); }
 };
+
 function renderProdGrid(){
-  const g=$('prodAdminGrid');
-  if(!allProds.length){ g.innerHTML='<div style="color:var(--muted);font-size:.85rem">Nenhum produto ainda. Adicione acima.</div>'; return; }
-  g.innerHTML=allProds.map(p=>`
+  const g = $('prodAdminGrid');
+  if (!allProds.length) { g.innerHTML='<div style="color:var(--muted);font-size:.85rem">Nenhum produto ainda. Adicione acima.</div>'; return; }
+  g.innerHTML = allProds.map(p=>`
     <div class="pac">
       <div class="pac-img">${p.emoji||'📦'}</div>
       <div class="pac-body">
         <div class="pac-name">${p.name}</div>
         <div class="pac-price">R$&nbsp;${(+p.price).toFixed(2).replace('.',',')}</div>
+        <div style="font-size:.68rem;margin-top:.3rem;display:flex;align-items:center;gap:.3rem">
+          ${p.type==='dropshipping'
+            ? `<span style="background:color-mix(in srgb,var(--a2) 15%,var(--card));color:var(--a2);border-radius:4px;padding:.15rem .45rem;font-weight:600">🛒 Drop</span>`
+            : `<span style="background:color-mix(in srgb,var(--gold) 15%,var(--card));color:var(--gold);border-radius:4px;padding:.15rem .45rem;font-weight:600">🔗 Afiliado ML</span>`
+          }
+          ${(p.type==='dropshipping' ? p.mpLink : p.affLink)
+            ? `<span style="color:var(--a3)">✓ Link ok</span>`
+            : `<span style="color:var(--accent)">⚠ sem link</span>`}
+        </div>
       </div>
       <button class="pac-del" onclick="deleteProd('${p.id}')">🗑</button>
     </div>`).join('');
